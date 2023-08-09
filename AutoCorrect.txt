@@ -1,0 +1,45 @@
+import re
+import heapq
+
+# Sample vocabulary
+vocabulary = {"hello", "world", "python", "programming", "example", "autocorrect"}
+
+# Function to calculate Levenshtein distance between two words
+def levenshtein_distance(word1, word2):
+    m, n = len(word1), len(word2)
+    dp = [[0] * (n + 1) for _ in range(m + 1)]
+
+    for i in range(m + 1):
+        for j in range(n + 1):
+            if i == 0:
+                dp[i][j] = j
+            elif j == 0:
+                dp[i][j] = i
+            elif word1[i - 1] == word2[j - 1]:
+                dp[i][j] = dp[i - 1][j - 1]
+            else:
+                dp[i][j] = 1 + min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1])
+
+    return dp[m][n]
+
+# Function to autocorrect a given word
+def autocorrect(input_word):
+    suggestions = []
+    for word in vocabulary:
+        distance = levenshtein_distance(input_word, word)
+        heapq.heappush(suggestions, (distance, word))
+
+    top_suggestions = heapq.nsmallest(3, suggestions)  # Get top 3 suggestions
+    return [suggestion[1] for suggestion in top_suggestions]
+
+# Input word from user
+input_word = input("Enter a word: ").lower()
+
+# Remove non-alphabetic characters
+input_word = re.sub(r'[^a-zA-Z]', '', input_word)
+
+if input_word in vocabulary:
+    print("No autocorrection needed. Word is in the vocabulary.")
+else:
+    corrections = autocorrect(input_word)
+    print(f"Suggestions for '{input_word}': {corrections}")
